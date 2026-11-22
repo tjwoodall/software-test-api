@@ -1,0 +1,163 @@
+openapi: 3.0.3
+info:
+  title: Echo Test
+  version: '1.0'
+  description: |
+    This API is for testing that python-mtd can handle arbitrary schemas with optional parameters
+servers:
+- url: http://test-api.making-tax-difficult.home.woodall.me.uk
+  description: Sandbox
+
+paths:
+  /test:
+    post:
+      summary: Echo endpoint
+      description: This resource echo the submission
+      parameters:
+      - $ref: '#/components/parameters/acceptHeader'
+      - $ref: '#/components/parameters/authorizationHeader'
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: &ref_1
+              title: MTD-IT invitation
+              type: object
+              required:
+                - service
+                - clientId
+                - knownFact
+              properties:
+                service:
+                  type: string
+                  enum:
+                    - MTD-IT
+                clientId:
+                  type: string
+                  description: The client's National Insurance number.
+                  pattern: ^[ABCEGHJKLMNOPRSTWXYZ][ABCEGHJKLMNPRSTWXYZ] ?[0-9]{2} ?[0-9]{2} ?[0-9]{2} ?[A-D]$
+                  example: AB123456A
+                knownFact:
+                  description: A UK postcode or a two-letter ISO country code.
+                  oneOf:
+                    - type: string
+                      title: UK postcode
+                      pattern: ^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$|^BFPO\s?[0-9]{1,5}$
+                      example: AA1 1AA
+                    - type: string
+                      title: ISO country code
+                      pattern: ^[A-Z]{2}$
+                      example: FR
+            examples:
+              mtdItMain:
+                summary: MTD-IT main agent
+                value:
+                  service: MTD-IT
+                  clientId: AB123456A
+                  knownFact: AA1 1AA
+              object:
+                value:
+                  "service": "MTD-IT"
+                  "clientId": "YR927593C"
+                  "knownFact": "SW1A 0AA"
+                  "str": "ni"
+                  "int": 1
+                  "float": 6.1
+                  "bool": true
+                  "null": null
+                  "object": &ref_2
+                    "str": "val1"
+                    "int": 2
+                    "float": 6.2
+                    "bool": false
+                    "null": null
+                    "object": {}
+                    "list": []
+              list:
+                value:
+                  "service": "MTD-IT"
+                  "clientId": "YR927593C"
+                  "knownFact": "SW1A 0AA"
+                  "str": "ni"
+                  "int": 1
+                  "float": 6.3
+                  "bool": true
+                  "null": null
+                  "object": {}
+                  "list": &ref_3
+                    - []
+                    - {}
+                    - null
+                    - true
+                    - 4.4
+                    - 3
+                    - "string-in-array"
+              everything:
+                value:
+                  "service": "MTD-IT"
+                  "clientId": "YR927593C"
+                  "knownFact": "SW1A 0AA"
+                  "str": "ni"
+                  "int": 1
+                  "float": 6.0
+                  "bool": true
+                  "null": null
+                  "object":
+                    "str": "val1"
+                    "int": 1
+                    "float": 4.0
+                    "bool": false
+                    "null": null
+                    "object": *ref_2
+                    "list": *ref_3
+                  "list":
+                    - *ref_3
+                    - *ref_2
+                    - null
+                    - true
+                    - 4.4
+                    - 3
+                    - "string-in-array"
+
+      responses:
+        '200':
+          description: Echo
+          content:
+            application/json:
+              schema: *ref_1
+
+      deprecated: false
+      security:
+        - Application-Restricted: []
+
+components:
+  parameters:
+    acceptHeader:
+      name: Accept
+      description: Specifies the response format and the [version](/api-documentation/docs/reference-guide#versioning) of the API to be used.
+      in: header
+      required: true
+      schema:
+        type: string
+        example: >-
+          application/vnd.hmrc.1.0+json
+    authorizationHeader:
+      name: Authorization
+      description: An [OAuth 2.0 Bearer Token](https://developer.service.hmrc.gov.uk/api-documentation/docs/authorisation/application-restricted-endpoints)
+      in: header
+      required: true
+      schema:
+        type: string
+        example: >-
+          Bearer 59fc92c1cdf0b8ef1f138a702effdbd2
+
+  securitySchemes:
+    Application-Restricted:
+      type: oauth2
+      description: |
+        This endpoint is [application-restricted](https://developer.service.hmrc.gov.uk/api-documentation/docs/authorisation/application-restricted-endpoints) and requires an Authorization header containing an OAuth 2.0 Bearer Token.
+      flows:
+        clientCredentials:
+          tokenUrl: https://api.service.hmrc.gov.uk/oauth/token
+          scopes: {}
